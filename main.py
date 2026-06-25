@@ -1,33 +1,34 @@
-import pandas as pd
-import sys
 import json
+import pandas as pd
 from git import Repo
 import shutil
-json_string = '{ "all": {"hosts": {}}}'
-python_object = json.loads(json_string)
-python_object["all"]["hosts"] = []
 
+REMOTE_URL = 'https://x:x-x.01.x@x.x/x/x.py.git'
+LOCAL_PATH = 'x-playbook'
+COMMIT_MESSAGE = 'Add inventory generated from Excel'
 
-def main($sheet):
-df = pd.read_excel($sheet, sheet_name='SERVIDORES')
-df.to_csv('servidores.csv', index=False, encoding='utf-8')
+def main(sheet):
+    df = pd.read_excel(sheet, sheet_name='SERVIDORES')
+    df.to_csv('servidores.csv', index=False, encoding='utf-8')
 
-for row in df.itertuples():
-    python_object["all"]["hosts"].append({row.NOME: {'ansible_host': row.IP_PRODUCAO, 'ansible_host': row.IP_PRODUCAO, 'resp': row.RESPONSAVEL, 'sistema': row.SO}})
+    inventory = {"all": {"hosts": {}}}
 
-filename = "inventory.json"
-COMMIT_MESSAGE = 'A descriptive message for your commit'
-# Open the file in write mode ('w') and use json.dump()
-with open(filename, 'w') as json_file:
-    json.dump(python_object, json_file, indent=4) #
+    for row in df.itertuples(index=False):
+        inventory["all"]["hosts"][str(row.NOME)] = {
+            "ansible_host": str(row.IP_PRODUCAO),
+            "resp": str(row.RESPONSAVEL),
+            "sistema": str(row.SO),
+        }
 
-REMOTE_URL='https://x:x-x.01.x@x.x/x/x.py.git'
-LOCAL_PATH='x-playbook'
-#repo = Repo.clone_from(REMOTE_URL, LOCAL_PATH)
-#shutil.move(filename, LOCAL_PATH)
-#repo.index.add([filename])
-#repo.index.commit(COMMIT_MESSAGE)
-#origin = repo.remote(name='origin')
-#origin.push()
+    filename = "inventory.json"
+    with open(filename, "w", encoding="utf-8") as json_file:
+        json.dump(inventory, json_file, indent=4, ensure_ascii=False)
+
+    # repo = Repo.clone_from(REMOTE_URL, LOCAL_PATH)
+    # shutil.copy(filename, f"{LOCAL_PATH}/{filename}")
+    # repo.index.add([filename])
+    # repo.index.commit(COMMIT_MESSAGE)
+    # repo.remote(name='origin').push()
+
 if __name__ == "__main__":
-    main(//fileserver/temp/doc.xlsx)
+    main("/fileserver/temp/doc.xlsx")
