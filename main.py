@@ -6,10 +6,11 @@ import shutil
 json_string = '{ "all": {"hosts": {}}}'
 python_object = json.loads(json_string)
 python_object["all"]["hosts"] = []
-df = pd.read_excel(sys.argv[1], sheet_name='SERVIDORES')
-df.to_csv('servidores.csv', index=False, encoding='utf-8')
 
-def main():
+
+def main($sheet):
+df = pd.read_excel($sheet, sheet_name='SERVIDORES')
+df.to_csv('servidores.csv', index=False, encoding='utf-8')
 
 for row in df.itertuples():
     python_object["all"]["hosts"].append({row.NOME: {'ansible_host': row.IP_PRODUCAO, 'ansible_host': row.IP_PRODUCAO, 'resp': row.RESPONSAVEL, 'sistema': row.SO}})
