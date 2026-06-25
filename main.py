@@ -1,8 +1,10 @@
 import json
 import pandas as pd
+import os
+
 from git import Repo
 import shutil
-
+os.environ["GIT_PYTHON_GIT_EXECUTABLE"] = "/usr/bin/git"  # adjust path
 REMOTE_URL = 'https://x:x-x.01.x@x.x/x/x.py.git'
 LOCAL_PATH = 'x-playbook'
 COMMIT_MESSAGE = 'Add inventory generated from Excel'
