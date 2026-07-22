@@ -30,7 +30,7 @@
         msg: "Found {{ snapshots_result.vmware_all_snapshots_info | length }} snapshots"
 
     - name: Build list of VMs with snapshots
-        set_fact:
+      set_fact:
           vms_with_snaps: >-
             {{
               snapshots_result.vmware_all_snapshots_info
