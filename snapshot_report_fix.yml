@@ -69,6 +69,7 @@
         host: "{{ smtp_server }}"
         port: "{{ smtp_port }}"
         from: "{{ email_from }}"
+        to: "{{ email_to }}"
         subject: "VMware Snapshots Report - {{ current_date }}"
         subtype: html
         body: |
