@@ -1,0 +1,16 @@
+---
+- name: Get VMware Snapshots and Send Email
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - community.vmware
+
+  tasks:
+    - name: Remove all snapshots
+      community.vmware.vmware_guest_snapshot:
+        datacenter: "{{ datacenter }}"
+        validate_certs: false
+        name: "{{ vm_name }}"
+        folder: "{{ vm_folder | default(omit) }}"
+        state: remove_all
+      delegate_to: localhost
