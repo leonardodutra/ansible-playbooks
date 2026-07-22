@@ -8,7 +8,7 @@
     smtp_port: 25
     email_from: "ansible@yourdomain.com"
     email_to: "recipient@domain.com"
-    current_date: "{{ now(utc=False) | strftime('%Y-%m-%d') }}"
+    current_date: "{{ now(utc=False, fmt='%Y-%m-%d') }}"
     report_file: "/tmp/snapshots.html"
 
   tasks:
