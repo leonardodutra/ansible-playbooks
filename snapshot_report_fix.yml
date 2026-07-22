@@ -39,6 +39,7 @@
 
     - name: Get VM info (folder) per VM
       community.vmware.vmware_vm_info:
+        datacenter: "{{ datacenter }}"
         validate_certs: false
         vm_name: "{{ item }}"
         show_folder: true
