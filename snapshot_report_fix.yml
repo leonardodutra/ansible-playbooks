@@ -10,11 +10,6 @@
     email_to: "recipient@domain.com"
     current_date: "{{ now(utc=False) | strftime('%Y-%m-%d') }}"
     report_file: "/tmp/snapshots.html"
-    vcenter_hostname: "your-vcenter"
-    vcenter_username: "your-user"
-    vcenter_password: "your-pass"
-    datacenter: "YourDatacenter"
-    env: "PROD"
 
   tasks:
     - name: Gather all VMware snapshots
@@ -44,9 +39,6 @@
 
     - name: Get VM info (folder) per VM
       community.vmware.vmware_vm_info:
-        hostname: "{{ vcenter_hostname }}"
-        username: "{{ vcenter_username }}"
-        password: "{{ vcenter_password }}"
         validate_certs: false
         vm_name: "{{ item }}"
         show_folder: true
@@ -74,10 +66,6 @@
 
     - name: Send email with snapshots list
       community.general.mail:
-        host: "{{ smtp_server }}"
-        port: "{{ smtp_port }}"
-        from: "{{ email_from }}"
-        to: "{{ email_to }}"
         subject: "VMware Snapshots Report - {{ current_date }}"
         subtype: html
         body: |
