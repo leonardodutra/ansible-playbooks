@@ -2,27 +2,26 @@
 - name: Get VMware Snapshots and Send Email
   hosts: localhost
   gather_facts: false
+
   vars:  
-    # Email settings (no authentication)
     smtp_server: "your-smtp-server"
     smtp_port: 25
     email_from: "ansible@yourdomain.com"
     email_to: "recipient@domain.com"
     current_date: "{{ now(utc=False) | strftime('%Y-%m-%d') }}"
-    
-    # Report file
     report_file: "/tmp/snapshots.html"
+    vcenter_hostname: "your-vcenter"
+    vcenter_username: "your-user"
+    vcenter_password: "your-pass"
+    datacenter: "YourDatacenter"
+    env: "PROD"
 
   tasks:
-    - name: Get current date using shell
-      command: date "+%Y-%m-%d"
-      register: date_cmd
-      changed_when: false
-      
     - name: Gather all VMware snapshots
       community.vmware.vmware_all_snapshots_info:
         datacenter: "{{ datacenter }}"
         validate_certs: false
+      delegate_to: localhost
       register: snapshots_result
 
     - name: Show snapshots found
@@ -31,13 +30,34 @@
 
     - name: Build list of VMs with snapshots
       set_fact:
-          vms_with_snaps: >-
-            {{
-              snapshots_result.vmware_all_snapshots_info
-              | map(attribute='vm_name')
-              | list
-              | unique
-            }}
+        vms_with_snaps: >-
+          {{
+            snapshots_result.vmware_all_snapshots_info
+            | map(attribute='vm_name')
+            | list
+            | unique
+          }}
+
+    - name: Get VM info (folder) for those VMs
+      community.vmware.vmware_vm_info:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: false
+        names: "{{ vms_with_snaps }}"
+      delegate_to: localhost
+      register: vms_info
+
+    - name: Build vm_name -> folder map
+      set_fact:
+        vm_folder_map: >-
+          {{
+            dict(
+              vms_info.virtual_machines
+              | map(attribute='name')
+              | zip(vms_info.virtual_machines | map(attribute='folder'))
+            )
+          }}
 
     - name: Send email with snapshots list
       community.general.mail:
