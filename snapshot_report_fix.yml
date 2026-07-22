@@ -29,13 +29,23 @@
       debug:
         msg: "Found {{ snapshots_result.vmware_all_snapshots_info | length }} snapshots"
 
+    - name: Build list of VMs with snapshots
+        set_fact:
+          vms_with_snaps: >-
+            {{
+              snapshots_result.vmware_all_snapshots_info
+              | map(attribute='vm_name')
+              | list
+              | unique
+            }}
+
     - name: Send email with snapshots list
       community.general.mail:
         host: "{{ smtp_server }}"
         port: "{{ smtp_port }}"
         from: "{{ email_from }}"
         to: "{{ email_to }}"
-        subject: "VMware Snapshots Report - {{ date_cmd.stdout }}"
+        subject: "VMware Snapshots Report - {{ current_date }}"
         subtype: html
         body: |
           <html>
@@ -43,15 +53,20 @@
           <h2>VMware Snapshots Report - {{ env }}</h2>
           <p>Total snapshots: {{ snapshots_result.vmware_all_snapshots_info | length }}</p>
           <table border="1" cellpadding="5">
-          <tr><th>VM Name</th><th>Created Date</th><th>Description</th><th>Automação</th><th></tr>
-          {% for snap in snapshots_result.vmware_all_snapshots_info %}
-          <tr>
-            <td>{{ snap.vm_name }}</td>
-            <td>{{ snap.creation_time }}</td>
-            <td>{{ snap.description }}</td>
-            <td><a href={{ helper }}>Prompt on Launch</a></td>
-          </tr>
-          {% endfor %}
+            <tr>
+              <th>VM Folder</th>
+              <th>VM Name</th>
+              <th>Created Date</th>
+              <th>Description</th>
+            </tr>
+            {% for snap in snapshots_result.vmware_all_snapshots_info %}
+            <tr>
+              <td>{{ vm_folder_map[snap.vm_name] | default('N/A') }}</td>
+              <td>{{ snap.vm_name }}</td>
+              <td>{{ snap.creation_time }}</td>
+              <td>{{ snap.description }}</td>
+            </tr>
+            {% endfor %}
           </table>
           </body>
           </html>
