@@ -83,6 +83,7 @@
               <th>VM Name</th>
               <th>Created Date</th>
               <th>Description</th>
+              <th>Automation</th>
             </tr>
             {% for snap in snapshots_result.vmware_all_snapshots_info %}
             <tr>
@@ -90,6 +91,7 @@
               <td>{{ snap.vm_name }}</td>
               <td>{{ snap.creation_time }}</td>
               <td>{{ snap.description }}</td>
+              <td><a href={{ helper }}>Prompt on Launch</a></td>
             </tr>
             {% endfor %}
           </table>
