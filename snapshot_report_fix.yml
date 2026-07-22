@@ -43,12 +43,13 @@
           <h2>VMware Snapshots Report - {{ env }}</h2>
           <p>Total snapshots: {{ snapshots_result.vmware_all_snapshots_info | length }}</p>
           <table border="1" cellpadding="5">
-          <tr><th>VM Name</th><th>Created Date</th><th>Description</th></tr>
+          <tr><th>VM Name</th><th>Created Date</th><th>Description</th><th>Automação</th><th></tr>
           {% for snap in snapshots_result.vmware_all_snapshots_info %}
           <tr>
             <td>{{ snap.vm_name }}</td>
             <td>{{ snap.creation_time }}</td>
             <td>{{ snap.description }}</td>
+            <td><a href={{ helper }}>Prompt on Launch</a></td>
           </tr>
           {% endfor %}
           </table>
