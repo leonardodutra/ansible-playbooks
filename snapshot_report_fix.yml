@@ -49,6 +49,7 @@
             <td>{{ snap.vm_name }}</td>
             <td>{{ snap.creation_time }}</td>
             <td>{{ snap.description }}</td>
+            <th>Resolve Aqui</th>
           </tr>
           {% endfor %}
           </table>
