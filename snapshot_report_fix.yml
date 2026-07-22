@@ -1,0 +1,56 @@
+---
+- name: Get VMware Snapshots and Send Email
+  hosts: localhost
+  gather_facts: false
+  vars:  
+    # Email settings (no authentication)
+    smtp_server: "your-smtp-server"
+    smtp_port: 25
+    email_from: "ansible@yourdomain.com"
+    email_to: "recipient@domain.com"
+    current_date: "{{ now(utc=False) | strftime('%Y-%m-%d') }}"
+    
+    # Report file
+    report_file: "/tmp/snapshots.html"
+
+  tasks:
+    - name: Get current date using shell
+      command: date "+%Y-%m-%d"
+      register: date_cmd
+      changed_when: false
+      
+    - name: Gather all VMware snapshots
+      community.vmware.vmware_all_snapshots_info:
+        datacenter: "{{ datacenter }}"
+        validate_certs: false
+      register: snapshots_result
+
+    - name: Show snapshots found
+      debug:
+        msg: "Found {{ snapshots_result.vmware_all_snapshots_info | length }} snapshots"
+
+    - name: Send email with snapshots list
+      community.general.mail:
+        host: "{{ smtp_server }}"
+        port: "{{ smtp_port }}"
+        from: "{{ email_from }}"
+        to: "{{ email_to }}"
+        subject: "VMware Snapshots Report - {{ date_cmd.stdout }}"
+        subtype: html
+        body: |
+          <html>
+          <body>
+          <h2>VMware Snapshots Report - {{ env }}</h2>
+          <p>Total snapshots: {{ snapshots_result.vmware_all_snapshots_info | length }}</p>
+          <table border="1" cellpadding="5">
+          <tr><th>VM Name</th><th>Created Date</th><th>Description</th></tr>
+          {% for snap in snapshots_result.vmware_all_snapshots_info %}
+          <tr>
+            <td>{{ snap.vm_name }}</td>
+            <td>{{ snap.creation_time }}</td>
+            <td>{{ snap.description }}</td>
+          </tr>
+          {% endfor %}
+          </table>
+          </body>
+          </html>
