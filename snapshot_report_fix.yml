@@ -40,9 +40,7 @@
 
     - name: Get VM info (folder) for those VMs
       community.vmware.vmware_vm_info:
-        hostname: "{{ vcenter_hostname }}"
-        username: "{{ vcenter_username }}"
-        password: "{{ vcenter_password }}"
+        datacenter: "{{ datacenter }}"
         validate_certs: false
         names: "{{ vms_with_snaps }}"
       delegate_to: localhost
