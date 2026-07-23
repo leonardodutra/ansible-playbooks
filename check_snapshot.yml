@@ -54,3 +54,5 @@
           </table>
           </body>
           </html>
+     when:
+       - {{ snapshots_result.vmware_all_snapshots_info | length }} | length > 0
