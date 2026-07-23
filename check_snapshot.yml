@@ -55,4 +55,4 @@
           </body>
           </html>
      when:
-       - {{ snapshots_result.vmware_all_snapshots_info }} | length > 0
+       - {{ snapshots_result.vmware_all_snapshots_info | length > 0 }}
