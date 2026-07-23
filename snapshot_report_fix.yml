@@ -98,5 +98,5 @@
           </body>
           </html>
            when:
-       when:
-         - snapshots_result.vmware_all_snapshots_info | length > 0
+      when:
+        - snapshots_result.vmware_all_snapshots_info | length > 0
