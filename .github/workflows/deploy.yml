@@ -7,7 +7,7 @@ on:
 jobs:
   deploy:
     # Explicitly target your custom self-hosted runner labels
-    runs-on: [self-hosted, linux, production]
+    runs-on: [self-hosted]
 
     steps:
       - name: Checkout Code
