@@ -4,6 +4,10 @@
   gather_facts: false
 
   vars:
+    datacenter: "YOUR_DATACENTER"          # set or pass via extra_vars
+    env: "production"                      # set your environment name
+    helper: "#"                            # URL for 'Prompt on Launch' link
+
     smtp_server: "your-smtp-server"
     smtp_port: 25
     email_from: "ansible@yourdomain.com"
@@ -19,16 +23,16 @@
       delegate_to: localhost
       register: snapshots_result
 
-    # Compute cutoff time (UTC, 7 days ago) as ISO-like string
+    # Compute cutoff (UTC now - 7 days) as an ISO-like string
     - name: Set cutoff datetime as ISO8601 string (UTC, 7 days ago)
       set_fact:
         cutoff_7d_ago: >-
           {{
-            (now(utc=true) | to_datetime - timedelta(days=7))
-            | to_datetime('%Y-%m-%dT%H:%M:%S')
+            (now(utc=true) - timedelta(days=7))
+            | strftime('%Y-%m-%dT%H:%M:%S')
           }}
 
-    # Filter snapshots list using creation_time >= cutoff_7d_ago
+    # Filter snapshots where creation_time >= cutoff_7d_ago
     - name: Filter snapshots from last 7 days
       set_fact:
         recent_snapshots: >-
@@ -90,7 +94,7 @@
         port: "{{ smtp_port }}"
         from: "{{ email_from }}"
         to: "{{ email_to }}"
-        subject: "VMware Snapshots Report - {{ current_date }} - {{ env }}"
+        subject: "VMware Snapshots Report - {{ current_date }}"
         subtype: html
         body: |
           <html>
