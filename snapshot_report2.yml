@@ -1,19 +1,19 @@
 ---
-- name: Get VMware Snapshots and Send Email
+- name: Get VMware Snapshots Older Than 7 Days and Send Email
   hosts: localhost
   gather_facts: false
 
   vars:
-    datacenter: "YOUR_DATACENTER"          # set or pass via extra_vars
-    env: "production"                      # set your environment name
-    helper: "#"                            # URL for 'Prompt on Launch' link
+    datacenter: "YOUR_DATACENTER"          # Set or pass via extra_vars
+    env: "production"                      # Environment name
+    helper: "#"                            # URL for "Prompt on Launch"
 
     smtp_server: "your-smtp-server"
     smtp_port: 25
     email_from: "ansible@yourdomain.com"
     email_to: "recipient@domain.com"
+
     current_date: "{{ now(utc=false, fmt='%Y-%m-%d') }}"
-    report_file: "/tmp/snapshots.html"
 
   tasks:
     - name: Gather all VMware snapshots
@@ -23,46 +23,44 @@
       delegate_to: localhost
       register: snapshots_result
 
-    # Get cutoff date (UTC) 7 days ago using shell 'date'
     - name: Get cutoff date (UTC) 7 days ago
       ansible.builtin.command: date -u -d '7 days ago' +%Y-%m-%dT%H:%M:%S
       register: cutoff_cmd
       changed_when: false
 
-    - name: Set cutoff_date fact
-      set_fact:
+    - name: Set cutoff date fact
+      ansible.builtin.set_fact:
         cutoff_7d_ago: "{{ cutoff_cmd.stdout }}"
 
-    # Filter snapshots: creation_time >= cutoff_7d_ago (lexicographic on ISO strings)
-    - name: Filter snapshots from last 7 days
-      set_fact:
-        recent_snapshots: >-
+    - name: Filter snapshots older than 7 days
+      ansible.builtin.set_fact:
+        old_snapshots: >-
           {{
             snapshots_result.vmware_all_snapshots_info | default([])
             | selectattr('creation_time', 'defined')
-            | selectattr('creation_time', '>=', cutoff_7d_ago)
+            | selectattr('creation_time', '<', cutoff_7d_ago)
             | list
           }}
 
-    - name: Show snapshots found (last 7 days)
-      debug:
-        msg: "Found {{ recent_snapshots | length }} snapshots in the last 7 days"
+    - name: Show snapshots found
+      ansible.builtin.debug:
+        msg: "Found {{ old_snapshots | length }} snapshots older than 7 days"
 
-    - name: Build list of VMs with snapshots (last 7 days)
-      set_fact:
+    - name: Build list of VMs with old snapshots
+      ansible.builtin.set_fact:
         vms_with_snaps: >-
           {{
-            recent_snapshots
+            old_snapshots
             | map(attribute='vm_name')
             | list
             | unique
           }}
 
-    - name: Init vm_folder_map
-      set_fact:
+    - name: Initialize VM folder map
+      ansible.builtin.set_fact:
         vm_folder_map: {}
 
-    - name: Get VM info (folder) per VM
+    - name: Get VM folder information
       community.vmware.vmware_vm_info:
         validate_certs: false
         vm_name: "{{ item }}"
@@ -71,8 +69,8 @@
       delegate_to: localhost
       register: vm_info_per_vm
 
-    - name: Build vm_name -> folder map from vm_info_per_vm
-      set_fact:
+    - name: Build VM name to folder map
+      ansible.builtin.set_fact:
         vm_folder_map: >-
           {{
             vm_folder_map
@@ -89,38 +87,49 @@
       loop_control:
         label: "{{ item.invocation.module_args.vm_name }}"
 
-    - name: Send email with snapshots list (last 7 days)
+    - name: Send email with old snapshots report
       community.general.mail:
         host: "{{ smtp_server }}"
         port: "{{ smtp_port }}"
         from: "{{ email_from }}"
         to: "{{ email_to }}"
-        subject: "VMware Snapshots Report - {{ current_date }}"
+        subject: "VMware Snapshots Older Than 7 Days Report - {{ current_date }}"
         subtype: html
         body: |
           <html>
           <body>
-          <h2>VMware Snapshots Report - {{ env }}</h2>
-          <p>Total snapshots (last 7 days): {{ recent_snapshots | length }}</p>
-          <table border="1" cellpadding="5">
-            <tr>
+
+          <h2>VMware Snapshots Older Than 7 Days Report - {{ env }}</h2>
+
+          <p>
+          Total snapshots older than 7 days:
+          <strong>{{ old_snapshots | length }}</strong>
+          </p>
+
+          <table border="1" cellpadding="5" cellspacing="0">
+            <tr style="background-color:#d9d9d9;">
               <th>VM Folder</th>
               <th>VM Name</th>
               <th>Created Date</th>
               <th>Description</th>
               <th>Automation</th>
             </tr>
-            {% for snap in recent_snapshots %}
+
+            {% for snap in old_snapshots %}
             <tr>
-              <td>{{ vm_folder_map[snap.vm_name] | default('N/A') }}</td>
+              <td>{{ vm_folder_map.get(snap.vm_name, 'N/A') }}</td>
               <td>{{ snap.vm_name }}</td>
               <td>{{ snap.creation_time }}</td>
-              <td>{{ snap.description }}</td>
-              <td><a href="{{ helper }}">Prompt on Launch</a></td>
+              <td>{{ snap.description | default('No description') }}</td>
+              <td>
+                <a href="{{ helper }}">Prompt on Launch</a>
+              </td>
             </tr>
             {% endfor %}
+
           </table>
+
           </body>
           </html>
       when:
-        - recent_snapshots | length > 0
+        - old_snapshots | length > 0
