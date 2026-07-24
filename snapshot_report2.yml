@@ -23,23 +23,48 @@
       delegate_to: localhost
       register: snapshots_result
 
-    # Compute cutoff (UTC now - 7 days) as an ISO-like string
-    - name: Set cutoff datetime as ISO8601 string (UTC, 7 days ago)
+    # Get current UTC time as ISO8601 string
+    - name: Set current UTC datetime string
       set_fact:
-        cutoff_7d_ago: >-
-          {{
-            (now(utc=true) - timedelta(days=7))
-            | strftime('%Y-%m-%dT%H:%M:%S')
-          }}
+        now_utc_str: "{{ now(utc=true, fmt='%Y-%m-%dT%H:%M:%S') }}"
 
-    # Filter snapshots where creation_time >= cutoff_7d_ago
+    # Extract date-only part (YYYY-MM-DD) and compute "7 days ago" date by simple arithmetic
+    # This works because ISO dates compare lexicographically in order.[web:18]
+    - name: Build list of allowed dates (last 7 days, UTC)
+      set_fact:
+        allowed_dates: >-
+          {{
+            [
+              (now_utc_str[0:10]),
+              (now_utc_str[0:10] | to_datetime('%Y-%m-%d') | community.general.timedelta(days=-1) | strftime('%Y-%m-%d')),
+              (now_utc_str[0:10] | to_datetime('%Y-%m-%d') | community.general.timedelta(days=-2) | strftime('%Y-%m-%d')),
+              (now_utc_str[0:10] | to_datetime('%Y-%m-%d') | community.general.timedelta(days=-3) | strftime('%Y-%m-%d')),
+              (now_utc_str[0:10] | to_datetime('%Y-%m-%d') | community.general.timedelta(days=-4) | strftime('%Y-%m-%d')),
+              (now_utc_str[0:10] | to_datetime('%Y-%m-%d') | community.general.timedelta(days=-5) | strftime('%Y-%m-%d')),
+              (now_utc_str[0:10] | to_datetime('%Y-%m-%d') | community.general.timedelta(days=-6) | strftime('%Y-%m-%d'))
+            ]
+          }}
+      vars:
+        # community.general.timedelta comes from the community.general collection.[web:3][web:1]
+        _dummy: ""
+
+    # Filter snapshots whose creation_time date (first 10 chars) is in allowed_dates
     - name: Filter snapshots from last 7 days
       set_fact:
         recent_snapshots: >-
           {{
             snapshots_result.vmware_all_snapshots_info | default([])
             | selectattr('creation_time', 'defined')
-            | selectattr('creation_time', '>=', cutoff_7d_ago)
+            | selectattr(
+                'creation_time',
+                'in',
+                allowed_dates | map('regex_replace', '^(.*)$', '\\g<1>')
+              )
+            | selectattr(
+                'creation_time',
+                'match',
+                '^(' ~ (allowed_dates | join('|')) ~ ')'
+              )
             | list
           }}
 
