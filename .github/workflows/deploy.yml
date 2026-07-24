@@ -1,19 +1,54 @@
-name: Production Deployment
+name: Build and Push AWX Custom EE
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+    paths:
+      - .github/workflows/**
+      - .gitlab-ci.yml
+      - requirements.txt
+      - execution-environment.yml
+      - context/**
+      - EE/**
+      - ansible.cfg
+      - requirements/**
 
 jobs:
-  deploy:
-    # Explicitly target your custom self-hosted runner labels
+  build_job:
     runs-on: self-hosted
+    env:
+      CI_REGISTRY_IMAGE: quay.io/suporteenergisa/awx-custom-ee
+      CI_COMMIT_REF_SLUG: 1.0.0-main
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Execute Deployment Script
+      - name: Install dependencies
         run: |
-          echo "Deploying application to local target directory..."
-          rsync -avz ./dist/ /var/www/html/
-          systemctl restart nginx
+          apk add --no-cache oniguruma-dev
+          apk add --no-cache python3 py3-pip gcc musl-dev python3-dev py3-virtualenv
+          python3 -m venv venv
+          . venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+        shell: bash
+
+      - name: Build image
+        run: |
+          . venv/bin/activate
+          ansible-builder build --tag="${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_SLUG}" --container-runtime=docker --verbosity=3
+        shell: bash
+
+      - name: Login to Quay
+        run: |
+          echo "${{ secrets.SECRET }}" | docker login quay.io -u "${{ secrets.LOGIN }}" --password-stdin
+        shell: bash
+
+      - name: Push image
+        run: |
+          docker push "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_SLUG}"
+        shell: bash
+
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
