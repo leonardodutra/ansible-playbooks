@@ -131,5 +131,4 @@
 
           </body>
           </html>
-      when:
-        - old_snapshots | length > 0
+      when: old_snapshots | length > 0
