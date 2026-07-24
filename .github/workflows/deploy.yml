@@ -7,7 +7,7 @@ on:
 jobs:
   deploy:
     # Explicitly target your custom self-hosted runner labels
-    runs-on: [leonardo-ThinkPad-E14-Gen-4, self-hosted, Linux, X64]
+    runs-on: self-hosted
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
