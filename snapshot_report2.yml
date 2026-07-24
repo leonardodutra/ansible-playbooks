@@ -1,0 +1,121 @@
+---
+- name: Get VMware Snapshots and Send Email
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    smtp_server: "your-smtp-server"
+    smtp_port: 25
+    email_from: "ansible@yourdomain.com"
+    email_to: "recipient@domain.com"
+    current_date: "{{ now(utc=false, fmt='%Y-%m-%d') }}"
+    report_file: "/tmp/snapshots.html"
+
+  tasks:
+    - name: Gather all VMware snapshots
+      community.vmware.vmware_all_snapshots_info:
+        datacenter: "{{ datacenter }}"
+        validate_certs: false
+      delegate_to: localhost
+      register: snapshots_result
+
+    # Compute cutoff time (UTC, 7 days ago) as ISO-like string
+    - name: Set cutoff datetime as ISO8601 string (UTC, 7 days ago)
+      set_fact:
+        cutoff_7d_ago: >-
+          {{
+            (now(utc=true) | to_datetime - timedelta(days=7))
+            | to_datetime('%Y-%m-%dT%H:%M:%S')
+          }}
+
+    # Filter snapshots list using creation_time >= cutoff_7d_ago
+    - name: Filter snapshots from last 7 days
+      set_fact:
+        recent_snapshots: >-
+          {{
+            snapshots_result.vmware_all_snapshots_info | default([])
+            | selectattr('creation_time', 'defined')
+            | selectattr('creation_time', '>=', cutoff_7d_ago)
+            | list
+          }}
+
+    - name: Show snapshots found (last 7 days)
+      debug:
+        msg: "Found {{ recent_snapshots | length }} snapshots in the last 7 days"
+
+    - name: Build list of VMs with snapshots (last 7 days)
+      set_fact:
+        vms_with_snaps: >-
+          {{
+            recent_snapshots
+            | map(attribute='vm_name')
+            | list
+            | unique
+          }}
+
+    - name: Init vm_folder_map
+      set_fact:
+        vm_folder_map: {}
+
+    - name: Get VM info (folder) per VM
+      community.vmware.vmware_vm_info:
+        validate_certs: false
+        vm_name: "{{ item }}"
+        show_folder: true
+      loop: "{{ vms_with_snaps }}"
+      delegate_to: localhost
+      register: vm_info_per_vm
+
+    - name: Build vm_name -> folder map from vm_info_per_vm
+      set_fact:
+        vm_folder_map: >-
+          {{
+            vm_folder_map
+            | combine(
+                {
+                  item.invocation.module_args.vm_name:
+                    (
+                      item.virtual_machines | default([]) | first | default({})
+                    ).folder | default('N/A')
+                }
+              )
+          }}
+      loop: "{{ vm_info_per_vm.results }}"
+      loop_control:
+        label: "{{ item.invocation.module_args.vm_name }}"
+
+    - name: Send email with snapshots list (last 7 days)
+      community.general.mail:
+        host: "{{ smtp_server }}"
+        port: "{{ smtp_port }}"
+        from: "{{ email_from }}"
+        to: "{{ email_to }}"
+        subject: "VMware Snapshots Report - {{ current_date }}"
+        subtype: html
+        body: |
+          <html>
+          <body>
+          <h2>VMware Snapshots Report - {{ env }}</h2>
+          <p>Total snapshots (last 7 days): {{ recent_snapshots | length }}</p>
+          <table border="1" cellpadding="5">
+            <tr>
+              <th>VM Folder</th>
+              <th>VM Name</th>
+              <th>Created Date</th>
+              <th>Description</th>
+              <th>Automation</th>
+            </tr>
+            {% for snap in recent_snapshots %}
+            <tr>
+              <td>{{ vm_folder_map[snap.vm_name] | default('N/A') }}</td>
+              <td>{{ snap.vm_name }}</td>
+              <td>{{ snap.creation_time }}</td>
+              <td>{{ snap.description }}</td>
+              <td><a href="{{ helper }}">Prompt on Launch</a></td>
+            </tr>
+            {% endfor %}
+          </table>
+          </body>
+          </html>
+      when:
+        - recent_snapshots | length > 0
