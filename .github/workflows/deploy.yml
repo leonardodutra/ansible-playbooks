@@ -1,0 +1,20 @@
+name: Production Deployment
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    # Explicitly target your custom self-hosted runner labels
+    runs-on: [self-hosted, linux, production]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Execute Deployment Script
+        run: |
+          echo "Deploying application to local target directory..."
+          rsync -avz ./dist/ /var/www/html/
+          systemctl restart nginx
