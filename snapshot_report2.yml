@@ -90,7 +90,7 @@
         port: "{{ smtp_port }}"
         from: "{{ email_from }}"
         to: "{{ email_to }}"
-        subject: "VMware Snapshots Report - {{ current_date }}"
+        subject: "VMware Snapshots Report - {{ current_date }} - {{ env }}"
         subtype: html
         body: |
           <html>
