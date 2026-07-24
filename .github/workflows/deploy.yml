@@ -6,7 +6,6 @@ on:
       - main
     paths:
       - .github/workflows/**
-      - .gitlab-ci.yml
       - requirements.txt
       - execution-environment.yml
       - context/**
