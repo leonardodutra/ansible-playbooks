@@ -22,5 +22,6 @@ def main(sheet):
         from git import Repo
         repo = Repo.clone_from(REMOTE_URL, LOCAL_PATH)
 
+
 if __name__ == "__main__":
     main("/fileserver/temp/doc.xlsx")
