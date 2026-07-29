@@ -97,12 +97,6 @@
         subtype: html
         body: |
           <html>
-            <script>
-            function copyDataLink(event) {
-              const linkUrl = event.target.getAttribute('data-link');
-              navigator.clipboard.writeText(linkUrl);
-            }
-            </script>
           <body>
           <h2>VMware Snapshots Older Than 7 Days Report - {{ env }}</h2>
           <p>
