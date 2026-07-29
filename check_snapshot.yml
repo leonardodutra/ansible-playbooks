@@ -106,8 +106,8 @@
 
           <table border="1" cellpadding="5" cellspacing="0">
             <tr style="background-color:#d9d9d9;">
-              <th>vm_folder:</th>
-              <th>vm_nameame:</th>
+              <th>datacenter/vm_folder</th>
+              <th>vm_name</th>
               <th>Created Date</th>
               <th>Description</th>
               <th>Automation</th>
