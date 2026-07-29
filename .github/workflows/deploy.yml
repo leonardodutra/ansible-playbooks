@@ -12,7 +12,6 @@ on:
       - EE/**
       - ansible.cfg
       - requirements/**
-
 jobs:
   build_job:
     runs-on: self-hosted
