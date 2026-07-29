@@ -118,7 +118,7 @@
 
             {% for snap in old_snapshots %}
             <tr>
-              <td><a href=#{{ vm_folder_map.get(snap.vm_name, 'N/A') }}</a></td>
+              <td><a href="{{ helper }}">{{ vm_folder_map.get(snap.vm_name, 'N/A') }}</a></td>
               <td>{{ snap.vm_name }}</td>
               <td>{{ snap.creation_time }}</td>
               <td>{{ snap.description | default('No description') }}</td>
