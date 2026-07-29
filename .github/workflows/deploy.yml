@@ -43,6 +43,7 @@ jobs:
           # Ajuste o parâmetro -p conforme necessário; se não usar, remova
           ansible-docgen -p . || ansible-docgen
         shell: bash
+        continue-on-error: true
 
       - name: Commit and push README.md if changed
         run: |
