@@ -97,7 +97,16 @@
         subtype: html
         body: |
           <html>
-
+            <script>
+              function copyToClipboard(event, text) {
+                event.preventDefault();
+                navigator.clipboard.writeText(text).then(() => {
+                  console.log('Copied:', text);
+                }).catch(err => {
+                  console.error('Copy failed:', err);
+                });
+              }
+            </script>
           <body>
 
           <h2>VMware Snapshots Older Than 7 Days Report - {{ env }}</h2>
@@ -118,7 +127,12 @@
 
             {% for snap in old_snapshots %}
             <tr>
-              <td><a href="{{ helper }}">{{ vm_folder_map.get(snap.vm_name, 'N/A') }}</a></td>
+            <td>
+              <a href="{{ vm_folder_map.get(snap.vm_name, 'N/A') }}"
+                 onclick="copyToClipboard(event, this.getAttribute('href'))">
+                {{ vm_folder_map.get(snap.vm_name, 'N/A') }}
+              </a>
+            </td>
               <td>{{ snap.vm_name }}</td>
               <td>{{ snap.creation_time }}</td>
               <td>{{ snap.description | default('No description') }}</td>
