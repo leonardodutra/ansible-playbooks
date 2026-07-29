@@ -43,7 +43,7 @@ jobs:
       - name: Get role name from repo name
         id: vars
         run: |
-          ROLE_NAME=$(basename "${}")
+          ROLE_NAME=""
           echo "role_name=${ROLE_NAME}" >> $GITHUB_OUTPUT
 
       - name: Generate README.md with docsible
