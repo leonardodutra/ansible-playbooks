@@ -98,10 +98,22 @@
         body: |
           <html>
             <script>
-              function copyToClipboard(event, text) {
-                event.preventDefault();
-                navigator.clipboard.writeText(text);
-              }
+            function copyHref(event) {
+              // Prevent the browser from opening the link
+              event.preventDefault(); 
+              
+              // Get the href attribute value from the clicked link
+              const linkUrl = event.target.getAttribute('href'); 
+              
+              // Copy the URL string to the clipboard
+              navigator.clipboard.writeText(linkUrl)
+                .then(() => {
+                  alert("Link copied to clipboard!");
+                })
+                .catch(err => {
+                  console.error("Failed to copy link: ", err);
+                });
+            }
             </script>
           <body>
 
@@ -123,13 +135,7 @@
 
             {% for snap in old_snapshots %}
             <tr>
-            <td>
-              <a href="{{ vm_folder_map.get(snap.vm_name, '#') }}"
-                 data-copy="{{ vm_folder_map.get(snap.vm_name, 'N/A') | e }}"
-                 onclick="copyToClipboard(event, this.dataset.copy)">
-                {{ vm_folder_map.get(snap.vm_name, 'N/A') }}
-              </a>
-            </td>
+            <td><a href="https://example.com" onclick="copyHref(event)">{{ vm_folder_map.get(snap.vm_name, '#') }}</a></td>
               <td>{{ snap.vm_name }}</td>
               <td>{{ snap.creation_time }}</td>
               <td>{{ snap.description | default('No description') }}</td>
