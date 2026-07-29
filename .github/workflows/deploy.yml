@@ -34,6 +34,7 @@ jobs:
 
       - name: Generate documentation
         run: |
+          whereis ansible-docgen
           ansible-docgen -p your-project-name
 
       - name: Commit and push README.md if changed
