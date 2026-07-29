@@ -98,22 +98,6 @@
         body: |
           <html>
 
-          <script type="text/javascript">
-            document.querySelector('.copy-btn').addEventListener('click', function() {
-              // Grab the URL from the data attribute
-              const linkToCopy = this.getAttribute('data-link');
-              
-              // Copy the URL text to the clipboard
-              navigator.clipboard.writeText(linkToCopy)
-                .then(() => {
-                  this.textContent = 'Copied!';
-                  setTimeout(() => this.textContent = 'Copy Link', 2000);
-                })
-                .catch(err => {
-                  console.error('Failed to copy: ', err);
-                });
-            });
-          </script>
           <body>
 
           <h2>VMware Snapshots Older Than 7 Days Report - {{ env }}</h2>
@@ -134,7 +118,7 @@
 
             {% for snap in old_snapshots %}
             <tr>
-              <td><button class="copy-btn" data-link="https://example.com">{{ vm_folder_map.get(snap.vm_name, 'N/A') }}</button></td>
+              <td><a href="{{ vm_folder_map.get(snap.vm_name, 'N/A') }}">{{ vm_folder_map.get(snap.vm_name, 'N/A') }}</a></td>
               <td>{{ snap.vm_name }}</td>
               <td>{{ snap.creation_time }}</td>
               <td>{{ snap.description | default('No description') }}</td>
