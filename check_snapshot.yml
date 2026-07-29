@@ -100,11 +100,7 @@
             <script>
               function copyToClipboard(event, text) {
                 event.preventDefault();
-                navigator.clipboard.writeText(text).then(() => {
-                  console.log('Copied:', text);
-                }).catch(err => {
-                  console.error('Copy failed:', err);
-                });
+                navigator.clipboard.writeText(text);
               }
             </script>
           <body>
