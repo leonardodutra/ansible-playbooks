@@ -37,17 +37,32 @@ jobs:
           pip install -r requirements.txt
         shell: bash
 
-      - uses: actions/checkout@v4
-      - uses: actionhippie/ansible-doctor@v1
-        with:
-          path: '.'
-          force: true
-      - name: Commit & Push
+      - name: Install docsible
+        run: pip install docsible
+
+      - name: Get role name from repo name
+        id: vars
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add README.md
-          git diff --cached --quiet || git commit -m "docs: update [skip ci]" && git push
+          ROLE_NAME=$(basename "${GITHUB_REPOSITORY}")
+          echo "role_name=${ROLE_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Generate README.md with docsible
+        run: |
+          docsible --role "${{ steps.vars.outputs.role_name }}" --no-backup
+
+      - name: Commit and push if README changed
+        run: |
+            
+            cd ${GITHUB_REPOSITORY}
+            git config user.name "${{ github.actor }}"
+            git config user.email "${{ github.actor }}@users.noreply.github.com"
+            git add README.md
+            if ! git diff --cached --quiet; then
+                git commit -m "Auto-update README.md using Docsible"
+                git push
+            else
+                echo "No changes to README.md"
+            fi
 
       - name: Build image
         run: |
