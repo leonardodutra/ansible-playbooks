@@ -32,6 +32,11 @@ jobs:
           pip install -r requirements.txt
         shell: bash
 
+      - name: Generate documentation
+        run: |
+          ansible-docgen -p ./
+        shell: bash
+
       - name: Build image
         run: |
           . venv/bin/activate
