@@ -39,14 +39,21 @@ jobs:
 
       - name: Generate documentation
         run: |
-          ansible-docgen
+          . venv/bin/activate
+          # Ajuste o parâmetro -p conforme necessário; se não usar, remova
+          ansible-docgen -p . || ansible-docgen
+        shell: bash
 
       - name: Commit and push README.md if changed
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add README.md
-          git diff --staged --quiet || (git commit -m "docs: update README.md via ansible-docgen" && git push)
+          if ! git diff --staged --quiet; then
+            git commit -m "docs: update README.md via ansible-docgen"
+            git push
+          fi
+        shell: bash
 
       - name: Build image
         run: |
