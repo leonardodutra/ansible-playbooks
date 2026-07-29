@@ -127,7 +127,7 @@
 
             {% for snap in old_snapshots %}
             <tr>
-              <td><button class="margin-top-10 btn btn-sm btn-primary" onclick="copytext('#text1')">{{ vm_folder_map.get(snap.vm_name, 'N/A') }}</button></td>
+              <td><a href="{{ vm_folder_map.get(snap.vm_name, 'N/A') }}" class="share-link">{{ vm_folder_map.get(snap.vm_name, 'N/A') }}</a></td>
               <td>{{ snap.vm_name }}</td>
               <td>{{ snap.creation_time }}</td>
               <td>{{ snap.description | default('No description') }}</td>
