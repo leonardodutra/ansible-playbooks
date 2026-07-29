@@ -64,7 +64,7 @@ jobs:
 
       - name: Login to Quay
         run: |
-          echo "${{ secrets.SECRET }}" | docker login quay.io -u "${{ secrets.LOGIN }}" --password-stdin
+          echo ${{ secrets.SECRET }} | docker login quay.io -u ${{ secrets.LOGIN }} --password-stdin
         shell: bash
 
       - name: Push image
