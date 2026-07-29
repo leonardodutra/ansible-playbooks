@@ -98,27 +98,13 @@
         body: |
           <html>
             <script>
-            function copyHref(event) {
-              // Prevent the browser from opening the link
-              event.preventDefault(); 
-              
-              // Get the href attribute value from the clicked link
-              const linkUrl = event.target.getAttribute('href'); 
-              
-              // Copy the URL string to the clipboard
-              navigator.clipboard.writeText(linkUrl)
-                .then(() => {
-                  alert("Link copied to clipboard!");
-                })
-                .catch(err => {
-                  console.error("Failed to copy link: ", err);
-                });
+            function copyDataLink(event) {
+              const linkUrl = event.target.getAttribute('data-link');
+              navigator.clipboard.writeText(linkUrl);
             }
             </script>
           <body>
-
           <h2>VMware Snapshots Older Than 7 Days Report - {{ env }}</h2>
-
           <p>
           Total snapshots older than 7 days:
           <strong>{{ old_snapshots | length }}</strong>
@@ -135,7 +121,7 @@
 
             {% for snap in old_snapshots %}
             <tr>
-            <td><a href="#" onclick="copyHref(event)">{{ vm_folder_map.get(snap.vm_name, '#') }}</a></td>
+              <td><button data-link="{{ vm_folder_map.get(snap.vm_name, '#') }}" onclick="copyDataLink(event)">Copy Link</button></a></td>
               <td>{{ snap.vm_name }}</td>
               <td>{{ snap.creation_time }}</td>
               <td>{{ snap.description | default('No description') }}</td>
