@@ -97,6 +97,16 @@
         subtype: html
         body: |
           <html>
+
+<script type="text/javascript">
+function copytext(el) {
+    var $tmp = $("<textarea>");
+    $("body").append($tmp);
+    $tmp.val($(el).text() + window.location.href).select();
+    document.execCommand("copy");
+    $tmp.remove();
+}   
+</script>
           <body>
 
           <h2>VMware Snapshots Older Than 7 Days Report - {{ env }}</h2>
@@ -117,7 +127,8 @@
 
             {% for snap in old_snapshots %}
             <tr>
-              <td><a href="{{ vm_folder_map.get(snap.vm_name, 'N/A') }}" class="share-link">{{ vm_folder_map.get(snap.vm_name, 'N/A') }}</a></td>
+              <td>          <div class="text-center">
+<button class="margin-top-10 btn btn-sm btn-primary" onclick="copytext('#text1')">{{ vm_folder_map.get(snap.vm_name, 'N/A') }}</button></div></td>
               <td>{{ snap.vm_name }}</td>
               <td>{{ snap.creation_time }}</td>
               <td>{{ snap.description | default('No description') }}</td>
