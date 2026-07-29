@@ -115,8 +115,8 @@
 
             {% for snap in old_snapshots %}
             <tr>
-              <td style="font-family: monospace;">{{ vm_folder_map.get(snap.vm_name, 'N/A') }}</td>
-              <td>{{ snap.vm_name }}</td>
+              <td style="font-family: monospace;">vm_folder: {{ vm_folder_map.get(snap.vm_name, 'N/A') }}</td>
+              <td>vm_name: {{ snap.vm_name }}</td>
               <td>{{ snap.creation_time }}</td>
               <td>{{ snap.description | default('No description') }}</td>
               <td>
