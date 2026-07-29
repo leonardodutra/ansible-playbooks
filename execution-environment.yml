@@ -1,1 +1,9 @@
+---
+version: 3
 
+images:
+  base_image:
+    name: ghcr.io/ansible-community/community-ee-minimal:latest
+
+dependencies:
+  galaxy: requirements.yml
