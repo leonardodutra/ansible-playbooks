@@ -128,8 +128,9 @@
             {% for snap in old_snapshots %}
             <tr>
             <td>
-              <a href="{{ vm_folder_map.get(snap.vm_name, 'N/A') }}"
-                 onclick="copyToClipboard(event, this.getAttribute('href'))">
+              <a href="{{ vm_folder_map.get(snap.vm_name, '#') }}"
+                 data-copy="{{ vm_folder_map.get(snap.vm_name, 'N/A') | e }}"
+                 onclick="copyToClipboard(event, this.dataset.copy)">
                 {{ vm_folder_map.get(snap.vm_name, 'N/A') }}
               </a>
             </td>
