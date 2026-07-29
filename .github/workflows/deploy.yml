@@ -48,7 +48,7 @@ jobs:
 
       - name: Generate README.md with docsible
         run: |
-          docsible --role "${{ steps.vars.outputs.role_name }}" --no-backup
+          docsible --playbook ./check_snapshot.yml --no-backup
 
       - name: Commit and push if README changed
         run: |
