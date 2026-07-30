@@ -44,19 +44,6 @@ jobs:
         run: |
           docsible --role ./ --playbook ./check_snapshot.yaml --no-backup
 
-      - name: Commit and push if README changed
-        run: |
-            
-            git config user.name "${{ github.actor }}"
-            git config user.email "${{ github.actor }}@users.noreply.github.com"
-            git add README.md
-            if ! git diff --cached --quiet; then
-                git commit -m "Auto-update README.md using Docsible"
-                git push
-            else
-                echo "No changes to README.md"
-            fi
-
       - name: Build image
         run: |
           . venv/bin/activate
